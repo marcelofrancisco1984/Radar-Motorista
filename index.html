@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Radar Motorista</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#0d1522;--panel:#172334;--muted:#9fb0c5;--green:#32d583;--yellow:#fdb022;--red:#f97066;--line:#2a3a50}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f5f7fb;font:15px system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:18px 16px 12px;background:#101827;position:sticky;top:0;z-index:500;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px}.logo{width:42px;height:42px;border-radius:13px;background:#16834b;display:grid;place-items:center;font-size:23px}
+h1{font-size:19px;margin:0}.sub{font-size:12px;color:var(--muted);margin-top:2px}
+main{padding:14px;max-width:760px;margin:auto}.row{display:flex;gap:9px;align-items:center}.between{justify-content:space-between}
+select,button{border:1px solid var(--line);border-radius:11px;background:#1b2a3d;color:#fff;padding:11px 12px;font:inherit}
+select{width:100%;margin:5px 0 12px}button{cursor:pointer}button.primary{background:#16834b;border-color:#16834b;font-weight:700}
+button:disabled{opacity:.55}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.score{font-size:38px;font-weight:800;line-height:1.15;margin:5px 0}.status{font-weight:700}.green{color:var(--green)}.yellow{color:var(--yellow)}.red{color:var(--red)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:#101b2a;border-radius:12px;padding:11px}.metric b{display:block;font-size:18px;margin-top:4px}
+#map{height:310px;border-radius:14px;overflow:hidden;border:1px solid var(--line);margin-bottom:12px}
+.note{font-size:12px;color:var(--muted);line-height:1.5}.list{display:grid;gap:9px}.city{display:flex;justify-content:space-between;align-items:center;padding:10px;background:#101b2a;border-radius:11px}
+.pill{font-size:11px;border-radius:99px;padding:4px 8px;background:#26374b}.bar{height:8px;background:#26374b;border-radius:20px;overflow:hidden;margin-top:8px}.bar span{display:block;height:100%;background:var(--green)}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 18px 28px}
+#log{max-height:120px;overflow:auto;font-size:12px;color:var(--muted)}
+@media(min-width:650px){.twocol{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}#map{height:420px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">◉</div><div><h1>RADAR MOTORISTA</h1><div class="sub">Protótipo experimental • Região de Campinas</div></div></div></header>
+<main>
+  <div class="card">
+    <div class="eyebrow">Área de monitoramento</div>
+    <select id="city">
+      <option value="Vinhedo">Vinhedo – SP</option><option value="Valinhos">Valinhos – SP</option>
+      <option value="Louveira">Louveira – SP</option><option value="Campinas">Campinas – SP</option>
+    </select>
+    <div class="row between"><span class="note" id="updated">Aguardando primeira consulta…</span><button id="refresh" class="primary">Atualizar agora</button></div>
+  </div>
+  <div class="twocol">
+    <section>
+      <div class="card">
+        <div class="eyebrow">Indicador experimental de oportunidade</div>
+        <div class="score" id="score">—</div>
+        <div class="status" id="status">Consultando condições…</div>
+        <div class="bar"><span id="bar" style="width:0%"></span></div>
+        <p class="note" id="explain">Este indicador combina condições meteorológicas e padrões horários genéricos. Não mede solicitações reais da Uber ou 99.</p>
+      </div>
+      <div class="grid">
+        <div class="metric"><span class="eyebrow">Chuva próxima hora</span><b id="rain">—</b></div>
+        <div class="metric"><span class="eyebrow">Temperatura</span><b id="temp">—</b></div>
+        <div class="metric"><span class="eyebrow">Prob. chuva</span><b id="prob">—</b></div>
+        <div class="metric"><span class="eyebrow">Vento</span><b id="wind">—</b></div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="eyebrow">Alertas neste aparelho</div>
+        <p class="note">Permita notificações para receber avisos enquanto esta página estiver aberta. Alertas com o app totalmente fechado exigem servidor de push, que será a próxima etapa.</p>
+        <div class="row"><button id="notify">Ativar notificações</button><span class="note" id="notifyState">Não ativadas</span></div>
+      </div>
+    </section>
+    <section>
+      <div id="map"></div>
+      <div class="card">
+        <div class="eyebrow">Sinais disponíveis</div>
+        <div class="list" id="signals">
+          <div class="city"><span>Clima</span><span class="pill">Consultando</span></div>
+          <div class="city"><span>Trânsito</span><span class="pill">Integração futura</span></div>
+          <div class="city"><span>Eventos</span><span class="pill">Integração futura</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="card"><div class="eyebrow">Histórico de atualizações</div><div id="log">Nenhuma atualização ainda.</div></div>
+  <p class="note">Dados meteorológicos: Open-Meteo (atribuição CC BY 4.0). Mapa: © OpenStreetMap contributors. O protótipo não recomenda dirigir até uma área sem avaliar segurança, custos e condições reais.</p>
+</main>
+<footer>RADAR MOTORISTA • MVP 0.1 • Não afiliado à Uber ou à 99</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const places = {
+ Vinhedo:{lat:-23.0303,lon:-46.9833}, Valinhos:{lat:-22.9706,lon:-46.9958},
+ Louveira:{lat:-23.0864,lon:-46.9503}, Campinas:{lat:-22.9056,lon:-47.0608}
+};
+const $=id=>document.getElementById(id);
+let map, marker, notificationGranted=false, lastAlertLevel="";
+function initMap(){
+ map=L.map('map').setView([ -23.00,-46.98 ],10);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(map);
+ Object.entries(places).forEach(([name,p])=>L.circleMarker([p.lat,p.lon],{radius:7,color:'#32d583',fillOpacity:.7}).addTo(map).bindPopup(name+' – ponto de referência'));
+}
+function scoreFor(weather){
+ const h=new Date().getHours(), day=new Date().getDay();
+ let score=25;
+ // Faixas horárias genéricas são hipótese inicial, não dados observados de corridas.
+ if((h>=6&&h<=9)||(h>=17&&h<=20)) score+=18;
+ if(h>=11&&h<=13) score+=8;
+ if(day===5||day===6) score+=10;
+ if(day===0) score+=7;
+ const rain=weather.nextRain;
+ if(rain>=0.5) score+=18; else if(rain>=0.1) score+=10;
+ if(weather.prob>=60) score+=8;
+ if(weather.wind>=35) score-=5;
+ return Math.max(0,Math.min(100,score));
+}
+function level(s){return s>=65?'ALTA':s>=42?'MODERADA':'BAIXA'}
+function colorClass(l){return l==='ALTA'?'green':l==='MODERADA'?'yellow':'red'}
+function addLog(msg){const el=$('log');const line=document.createElement('div');line.textContent=new Date().toLocaleTimeString('pt-BR')+' — '+msg;if(el.textContent==='Nenhuma atualização ainda.')el.textContent='';el.prepend(line)}
+async function load(){
+ const city=$('city').value,p=places[city];$('refresh').disabled=true;$('status').textContent='Atualizando dados meteorológicos…';
+ try{
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,precipitation,wind_speed_10m&hourly=precipitation_probability,precipitation&forecast_days=1&timezone=America%2FSao_Paulo`;
+  const r=await fetch(url);if(!r.ok)throw new Error('API meteorológica indisponível');const d=await r.json();
+  const now=new Date(), times=d.hourly.time.map(t=>new Date(t));let idx=times.findIndex(t=>t>=new Date(now.getFullYear(),now.getMonth(),now.getDate(),now.getHours()));
+  if(idx<0)idx=0;
+  const rain=Math.max(...d.hourly.precipitation.slice(idx,idx+2));
+  const prob=Math.max(...d.hourly.precipitation_probability.slice(idx,idx+2));
+  const w={nextRain:rain,prob,wind:d.current.wind_speed_10m};
+  const s=scoreFor(w),l=level(s);
+  $('score').textContent=s+'/100';$('score').className='score '+colorClass(l);
+  $('status').textContent='Oportunidade estimada: '+l;$('status').className='status '+colorClass(l);
+  $('bar').style.width=s+'%';$('rain').textContent=rain.toFixed(1)+' mm';$('temp').textContent=d.current.temperature_2m+' °C';$('prob').textContent=prob+'%';$('wind').textContent=w.wind+' km/h';
+  $('updated').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');
+  $('explain').textContent='Pontuação heurística experimental: horário, dia da semana e sinais de chuva. Não representa demanda medida nem faturamento esperado.';
+  $('signals').innerHTML=`<div class="city"><span>Clima</span><span class="pill">Atualizado</span></div><div class="city"><span>Trânsito</span><span class="pill">Ainda não conectado</span></div><div class="city"><span>Eventos</span><span class="pill">Ainda não conectado</span></div>`;
+  map.setView([p.lat,p.lon],11);if(marker)marker.remove();marker=L.circleMarker([p.lat,p.lon],{radius:13,color:l==='ALTA'?'#32d583':l==='MODERADA'?'#fdb022':'#f97066',fillOpacity:.35,weight:4}).addTo(map).bindPopup(city+': '+l+' (estimativa experimental)');
+  addLog(city+': indicador '+l+' ('+s+'/100), chuva próxima hora '+rain.toFixed(1)+' mm.');
+  if(notificationGranted&&l==='ALTA'&&lastAlertLevel!=='ALTA'){new Notification('Radar Motorista – oportunidade estimada',{body:'Sinais favoráveis em '+city+'. Confira as condições antes de sair.'});}
+  lastAlertLevel=l;
+ }catch(e){$('status').textContent='Não foi possível atualizar';$('explain').textContent=e.message+' — verifique sua conexão.';addLog('Falha: '+e.message)}
+ finally{$('refresh').disabled=false}
+}
+$('refresh').addEventListener('click',load);$('city').addEventListener('change',load);
+$('notify').addEventListener('click',async()=>{if(!('Notification'in window)){ $('notifyState').textContent='Não suportado neste navegador';return;}const p=await Notification.requestPermission();notificationGranted=p==='granted';$('notifyState').textContent=notificationGranted?'Permissão concedida':'Permissão não concedida';});
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+initMap();load();setInterval(load,10*60*1000);
+</script>
+</body></html>

@@ -1,0 +1,9 @@
+{
+  "name": "Radar Motorista",
+  "short_name": "Radar",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0d1522",
+  "theme_color": "#101827",
+  "description": "Indicador experimental de oportunidades para motoristas de aplicativo."
+}
