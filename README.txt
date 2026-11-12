@@ -10,7 +10,9 @@
 
 ## Limitações importantes
 - A pontuação não mede pedidos reais da Uber/99, não é uma previsão validada e não garante corridas ou ganhos.
-- Trânsito e eventos ainda não estão integrados.
+- Inclui atalho para visualizar o trânsito ao vivo no Google Maps, centralizado na cidade selecionada.
+- Inclui acesso direto à agenda oficial de eventos da Prefeitura de Vinhedo.
+- Trânsito e eventos ainda não são incorporados automaticamente à pontuação nem disparam alertas; esses atalhos abrem as fontes externas.
 - A notificação local só é acionada enquanto a página está ativa. Para alertas confiáveis com o app fechado, é necessário hospedar o app e implementar servidor de push (por exemplo, Firebase Cloud Messaging), cadastro de dispositivos e rotina de análise na nuvem.
 - O protótipo precisa ser servido por HTTPS para instalação PWA e recursos de service worker.
 - Open-Meteo: uso gratuito da API pública é voltado a uso não comercial; para produto comercial, contratar plano ou hospedar solução compatível. Exige atribuição CC BY 4.0.
@@ -24,8 +26,8 @@
 
 ## Próximas etapas técnicas
 1. Criar backend seguro e armazenamento de observações reais dos motoristas, com consentimento.
-2. Integrar API de trânsito com chave protegida no servidor (TomTom ou alternativa).
-3. Integrar fontes de eventos e calendário público.
+2. Integrar API de trânsito com chave protegida no servidor (TomTom ou alternativa), para ler congestionamentos automaticamente.
+3. Consumir automaticamente a agenda oficial de Vinhedo e outras fontes públicas de eventos.
 4. Criar modelo de previsão calibrado com resultados reais e medir precisão.
 5. Integrar Firebase Cloud Messaging para push quando o app estiver fechado.
 6. Criar painel de qualidade dos dados e evitar alertas sem evidência.
