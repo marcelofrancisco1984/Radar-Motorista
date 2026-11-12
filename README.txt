@@ -46,3 +46,5 @@ Padrão local de horário informado pelo motorista: em Vinhedo, maior demanda pe
 Atualização do padrão local de Vinhedo em dias úteis: pico principal entre 06:00 e 08:30; queda após 09:00 até 11:30; melhora entre 11:30 e 14:00. O indicador usa pesos experimentais para representar essas observações, que devem ser validadas com novos registros ao longo do tempo.
 
 Complemento do padrão local de Vinhedo em dias úteis: demanda fraca das 14:00 às 15:40; melhora a partir das 16:00, mantendo-se até 19:00. Pesos experimentais no indicador: -12 pontos no período fraco e +18 pontos na recuperação vespertina.
+
+Complemento do padrão local de Vinhedo em dias úteis: das 19:00 até 00:00 a demanda permanece moderada. O indicador atribui um peso intermediário (+8 pontos) a essa faixa, como hipótese inicial baseada na observação do motorista.
