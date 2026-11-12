@@ -128,7 +128,9 @@ function scoreFor(weather,uberObservation,city){
   if((h>=6&&h<8)||(h===8&&minute<=30)) score+=25; // Pico principal: 06:00–08:30.
   else if(h>=9&&h<11||(h===11&&minute<30)) score-=10; // Queda após 09:00 até 11:30.
   else if((h===11&&minute>=30)||(h>=12&&h<14)||(h===14&&minute===0)) score+=12; // Recuperação: 11:30–14:00.
-  else if(h>=17&&h<=20) score+=18;
+  else if((h===14&&minute>0)||(h===15&&minute<=40)) score-=12; // Período fraco: após 14:00 até 15:40.
+  else if((h===15&&minute>40)||(h>=16&&h<19)||(h===19&&minute===0)) score+=18; // Melhora a partir das 16:00 até 19:00.
+  else if(h>19&&h<=20) score+=8;
  } else {
   if(h>=6&&h<=9) score+=18;
   if(h>=11&&h<=13) score+=8;
@@ -164,7 +166,7 @@ async function load(){
   $('status').textContent='Oportunidade estimada: '+l;$('status').className='status '+colorClass(l);
   $('bar').style.width=s+'%';$('rain').textContent=rain.toFixed(1)+' mm';$('temp').textContent=d.current.temperature_2m+' °C';$('prob').textContent=prob+'%';$('wind').textContent=w.wind+' km/h';
   $('updated').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');
-  $('explain').textContent=uberObservation?'Estimativa experimental combinando horário, clima e sua observação manual recente do mapa de calor da Uber. Não representa demanda total da plataforma nem garante corridas.':'Estimativa experimental baseada em horário e clima. Em Vinhedo, considera o padrão informado pelo motorista em dias úteis: pico das 06:00 às 08:30, queda após 09:00 e melhora das 11:30 às 14:00. Sem observação recente do mapa da Uber; não representa demanda medida nem faturamento esperado.';
+  $('explain').textContent=uberObservation?'Estimativa experimental combinando horário, clima e sua observação manual recente do mapa de calor da Uber. Não representa demanda total da plataforma nem garante corridas.':'Estimativa experimental baseada em horário e clima. Em Vinhedo, considera o padrão informado pelo motorista em dias úteis: pico das 06:00 às 08:30, queda após 09:00, melhora das 11:30 às 14:00, período fraco das 14:00 às 15:40 e recuperação das 16:00 às 19:00. Sem observação recente do mapa da Uber; não representa demanda medida nem faturamento esperado.';
   renderUberObservation();
   $('signals').querySelector('.city span').textContent='Clima';$('signals').querySelector('.city .pill').textContent='Atualizado';
   map.setView([p.lat,p.lon],11);if(marker)marker.remove();marker=L.circleMarker([p.lat,p.lon],{radius:13,color:l==='ALTA'?'#32d583':l==='MODERADA'?'#fdb022':'#f97066',fillOpacity:.35,weight:4}).addTo(map).bindPopup(city+': '+l+' (estimativa experimental)');
