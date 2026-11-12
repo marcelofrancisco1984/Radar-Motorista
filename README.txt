@@ -65,3 +65,13 @@ Complemento do padrão local de Vinhedo em dias úteis: das 19:00 até 00:00 a d
 - A agenda de Vinhedo e Valinhos está disponível por links oficiais para consulta. Eventos ainda não são extraídos automaticamente nem pontuam.
 - O trânsito continua com link para o Google Maps. Para dados automáticos de fluxo/incidentes, a documentação da TomTom confirma cobertura no Brasil e exige chave de API; a chave não deve ser exposta no HTML público. É necessário backend seguro para essa integração.
 - A comparação entre cidades não é uma medição de pedidos Uber/99. Cidades sem observações próprias usam apenas padrões horários genéricos, e os dados de trânsito/eventos não são considerados na pontuação até existir integração automática verificável.
+
+
+## Integração TomTom — preparação do backend
+- A cobertura oficial da TomTom inclui Brasil para Traffic Flow e Traffic Incidents. O Radar vai começar pelos incidentes/congestionamentos próximos ao motorista; isso não deve ser confundido com uma medição completa de velocidade de todas as ruas.
+- O endpoint seguro está preparado em `cloudflare-worker.js`. Ele consulta incidentes presentes em um raio configurável (padrão 5 km), resume congestionamentos/acidentes/obras e mantém cache compartilhado de 5 minutos para reduzir consumo.
+- A chave deve ser cadastrada no Cloudflare como **Worker Secret** com o nome `TOMTOM_API_KEY`. Nunca inserir a chave no HTML, JavaScript público, README ou commit.
+- O Worker ainda precisa ser implantado no Cloudflare e receber a chave secreta antes de o aplicativo poder consultá-lo. Depois será configurada a URL pública do Worker no app.
+- A tabela oficial da TomTom informa atualmente franquias mensais gratuitas por API: Traffic Incidents Details 2.500 chamadas/mês e Traffic Flow Segment Data 20.000 chamadas/mês. Limites e preços podem mudar; monitorar consumo no painel TomTom antes de liberar para muitos usuários.
+- Documentação: https://docs.tomtom.com/traffic-api/documentation/tomtom-orbis-maps/v2/product-information/introduction ; https://docs.tomtom.com/traffic-api/documentation/tomtom-orbis-maps/v2/traffic-incidents/incident-details ; https://docs.tomtom.com/pricing
+- Este primeiro endpoint entrega ocorrências, não fluxo completo de velocidades. A pontuação do Radar só deve usar esses sinais depois de o backend estar implantado e os resultados serem validados.
