@@ -25,7 +25,7 @@ button:disabled{opacity:.55}.card{background:var(--panel);border:1px solid var(-
 .pill{font-size:11px;border-radius:99px;padding:4px 8px;background:#26374b}.bar{height:8px;background:#26374b;border-radius:20px;overflow:hidden;margin-top:8px}.bar span{display:block;height:100%;background:var(--green)}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 18px 28px}
 #log{max-height:120px;overflow:auto;font-size:12px;color:var(--muted)}
-.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.calc-grid label{display:block;font-size:12px;color:var(--muted)}.calc-grid input{width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:10px;background:#101b2a;color:#fff;font:inherit}.calc-result{font-size:26px;font-weight:800;margin:8px 0}.calc-good{color:var(--green)}.calc-mid{color:var(--yellow)}.calc-low{color:var(--red)}\n@media(min-width:650px){.twocol{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}#map{height:420px}}
+@media(min-width:650px){.twocol{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}#map{height:420px}}
 </style>
 </head>
 <body>
@@ -38,20 +38,6 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 18px 28px
       <option value="Louveira">Louveira – SP</option><option value="Campinas">Campinas – SP</option>
     </select>
     <div class="row between"><span class="note" id="updated">Aguardando primeira consulta…</span><button id="refresh" class="primary">Atualizar agora</button></div>
-  </div>
-  <div class="card">
-    <div class="eyebrow">Analisador de corrida • cálculo manual</div>
-    <p class="note">Avalie uma oferta sem conectar sua conta da Uber ou 99. Informe os dados antes de aceitar.</p>
-    <div class="calc-grid">
-      <label>Valor da corrida (R$)<input id="fare" inputmode="decimal" placeholder="Ex.: 18,50"></label>
-      <label>Distância com passageiro (km)<input id="tripKm" inputmode="decimal" placeholder="Ex.: 8"></label>
-      <label>Deslocamento até buscar (km)<input id="pickupKm" inputmode="decimal" value="0"></label>
-      <label>Preço do combustível (R$/L)<input id="fuelPrice" inputmode="decimal" placeholder="Informe o preço"></label>
-      <label>Consumo do carro (km/L)<input id="fuelEconomy" inputmode="decimal" placeholder="Informe o consumo"></label>
-      <label>Meta mínima (R$/km)<input id="minRate" inputmode="decimal" value="1,50"></label>
-    </div>
-    <button id="calculateRide" class="primary" style="width:100%;margin-top:12px">Analisar corrida</button>
-    <div id="rideOutput" aria-live="polite" class="note" style="margin-top:12px">Preencha os dados para calcular o valor por quilômetro e o saldo após combustível.</div>
   </div>
   <div class="twocol">
     <section>
@@ -148,25 +134,6 @@ $('refresh').addEventListener('click',load);$('city').addEventListener('change',
 $('notify').addEventListener('click',async()=>{if(!('Notification'in window)){ $('notifyState').textContent='Não suportado neste navegador';return;}const p=await Notification.requestPermission();notificationGranted=p==='granted';$('notifyState').textContent=notificationGranted?'Permissão concedida':'Permissão não concedida';});
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-// Analisador manual: não acessa nem automatiza os aplicativos de transporte.
-function numberFrom(id){return Number($(id).value.trim().replace(',','.'))}
-$('calculateRide').addEventListener('click',()=>{
- const fare=numberFrom('fare'),trip=numberFrom('tripKm'),pickup=numberFrom('pickupKm');
- const fuel=numberFrom('fuelPrice'),economy=numberFrom('fuelEconomy'),minimum=numberFrom('minRate');
- const out=$('rideOutput');
- if(!(fare>0&&trip>0&&pickup>=0&&fuel>0&&economy>0&&minimum>0)){
-  out.textContent='Confira os campos: valor, distância, combustível, consumo e meta precisam ser maiores que zero. O deslocamento até buscar pode ser zero.';return;
- }
- const total=trip+pickup,rate=fare/total,fuelCost=total/economy*fuel,afterFuel=fare-fuelCost;
- const cls=rate>=2?'calc-good':rate>=minimum?'calc-mid':'calc-low';
- const verdict=rate>=2?'Boa relação bruta por km':rate>=minimum?'Dentro da sua meta mínima':'Abaixo da sua meta mínima';
- out.innerHTML='<div class="calc-result '+cls+'">'+verdict+'</div>'+
- '<div class="city"><span>Valor bruto por km</span><b>R$ '+rate.toFixed(2).replace('.',',')+'</b></div>'+
- '<div class="city"><span>Distância total considerada</span><b>'+total.toFixed(1).replace('.',',')+' km</b></div>'+
- '<div class="city"><span>Combustível estimado</span><b>R$ '+fuelCost.toFixed(2).replace('.',',')+'</b></div>'+
- '<div class="city"><span>Saldo após combustível</span><b>R$ '+afterFuel.toFixed(2).replace('.',',')+'</b></div>'+
- '<p class="note">Estimativa simplificada. Não desconta manutenção, pneus, depreciação, taxas ou tempo. O deslocamento até buscar o passageiro entra na distância total.</p>';
-});
-\ninitMap();load();setInterval(load,10*60*1000);
+initMap();load();setInterval(load,10*60*1000);
 </script>
 </body></html>
