@@ -39,3 +39,6 @@
 - Meteorologia: Open-Meteo (CC BY 4.0).
 - Mapa: © OpenStreetMap contributors.
 - Não afiliado à Uber ou à 99.
+
+
+Padrão local de horário informado pelo motorista: em Vinhedo, maior demanda percebida durante a semana entre 06:00 e 08:30. O indicador experimental considera essa janela com peso adicional. É uma observação inicial do motorista, não uma medição oficial nem uma garantia de demanda.
