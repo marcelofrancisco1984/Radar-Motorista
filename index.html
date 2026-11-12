@@ -145,8 +145,8 @@ function scoreFor(weather,uberObservation,city){
  const sundayColdRain=city==='Vinhedo'&&day===0&&weather.temp<=18&&(rain>=0.1||weather.prob>=60);
  // Domingo em Vinhedo: calor favorece o movimento; frio com chuva reduz. Limites térmicos são parâmetros iniciais.
  if(city==='Vinhedo'&&day===0){
-  if(weather.temp>=25&&rain<0.1&&weather.prob<60) score+=15;
-  else if(sundayColdRain) score-=25;
+  if(weather.temp>=25&&h>=12&&h<18&&rain<0.1&&weather.prob<60) score+=15; // Calor favorece especialmente das 12h às 18h.
+  else if(sundayColdRain) score-=25; // Frio com chuva reduz o movimento no domingo.
  }
  if(!sundayColdRain){if(rain>=0.5) score+=18; else if(rain>=0.1) score+=10;}
  if(weather.prob>=60&&!sundayColdRain) score+=8;
