@@ -39,6 +39,11 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 18px 28px
     </select>
     <div class="row between"><span class="note" id="updated">Aguardando primeira consulta…</span><button id="refresh" class="primary">Atualizar agora</button></div>
   </div>
+  <div class="card" id="regionalCard">
+    <div class="row between"><div><div class="eyebrow">Radar regional • comparação automática</div><strong>Melhores sinais entre as quatro cidades</strong></div><span class="pill" id="regionalUpdated">Aguardando análise</span></div>
+    <div id="regionalRanking" class="list" style="margin-top:12px"><div class="city"><span>Consultando clima das cidades…</span><span class="pill">—</span></div></div>
+    <p class="note" id="regionalNote" style="margin:10px 0 0">A pontuação será calculada com dados meteorológicos disponíveis, padrões históricos iniciais e observações locais. Trânsito e eventos só entram na pontuação quando houver uma fonte automática verificável.</p>
+  </div>
   <div class="twocol">
     <section>
       <div class="card">
@@ -74,13 +79,18 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 18px 28px
     <section>
       <div id="map"></div>
       <div class="card">
-        <div class="eyebrow">Sinais disponíveis</div>
+        <div class="eyebrow">Cinco sinais monitorados</div>
         <div class="list" id="signals">
-          <div class="city"><span>Clima</span><span class="pill">Consultando</span></div>
-          <div class="city"><span>Trânsito ao vivo</span><a class="signal-link" id="trafficLink" href="https://www.google.com/maps/@-23.0303,-46.9833,13z/data=!5m1!1e1" target="_blank" rel="noopener">Abrir mapa</a></div>
-          <div class="city"><span>Eventos</span><a class="signal-link" href="https://www.vinhedo.sp.gov.br/portal/agenda" target="_blank" rel="noopener">Agenda oficial</a></div>
+          <div class="city"><span>1. Clima</span><span class="pill" id="climateSignal">Conectando</span></div>
+          <div class="city"><span>2. Trânsito</span><span class="pill" id="trafficSignal">Fonte automática pendente</span></div>
+          <div class="city"><span>3. Eventos</span><span class="pill" id="eventsSignal">Agendas oficiais</span></div>
+          <div class="city"><span>4. Histórico</span><span class="pill" id="historySignal">Padrões iniciais</span></div>
+          <div class="city"><span>5. Observações</span><span class="pill" id="observationSignal">Registros locais</span></div>
+          <div class="city"><span>Trânsito no mapa</span><a class="signal-link" id="trafficLink" href="https://www.google.com/maps/@-23.0303,-46.9833,13z/data=!5m1!1e1" target="_blank" rel="noopener">Abrir Google Maps</a></div>
+          <div class="city"><span>Agenda de Vinhedo</span><a class="signal-link" href="https://www.vinhedo.sp.gov.br/portal/agenda" target="_blank" rel="noopener">Ver eventos</a></div>
+          <div class="city"><span>Agenda de Valinhos</span><a class="signal-link" href="https://www.valinhos.sp.gov.br/portal/agenda" target="_blank" rel="noopener">Ver eventos</a></div>
         </div>
-        <p class="note" style="margin-top:10px">Trânsito e agenda abrem fontes externas. Nesta versão, ainda não entram automaticamente na pontuação nem geram alertas.</p>
+        <p class="note" style="margin-top:10px">Clima é consultado automaticamente nas quatro cidades. As agendas municipais e o trânsito abrem fontes externas; ainda não são coletados automaticamente nem pontuam. A integração de trânsito por API exige chave privada e servidor seguro.</p>
       </div>
     </section>
   </div>
@@ -96,7 +106,7 @@ const places = {
 };
 const $=id=>document.getElementById(id);
 let map, marker, notificationGranted=false, lastAlertLevel="";
-const UBER_KEY='radarUberObservationsV1';
+const UBER_KEY='radarUberObservationsV1';\nconst OBS_HISTORY_KEY='radarObservationHistoryV1';\nconst CITY_NAMES=Object.keys(places);\nlet regionalBusy=false;\nfunction readObservationHistory(){try{return JSON.parse(localStorage.getItem(OBS_HISTORY_KEY)||'[]')}catch(_){return []}}
 function readUberObservations(){try{return JSON.parse(localStorage.getItem(UBER_KEY)||'{}')}catch(_){return {}}}
 function getUberObservation(city=$('city').value){const item=readUberObservations()[city];if(!item)return null;const age=Date.now()-item.time;return age>=0&&age<=90*60*1000?item:null}
 function renderUberObservation(){
@@ -105,7 +115,7 @@ function renderUberObservation(){
 }
 function saveUberObservation(level){
  const all=readUberObservations();all[$('city').value]={level,time:Date.now()};
- try{localStorage.setItem(UBER_KEY,JSON.stringify(all));renderUberObservation();addLog('Mapa Uber registrado em '+$('city').value+': demanda '+level+'.');load();}
+ try{localStorage.setItem(UBER_KEY,JSON.stringify(all));const history=readObservationHistory();history.push({city:$('city').value,level,time:Date.now()});localStorage.setItem(OBS_HISTORY_KEY,JSON.stringify(history.slice(-500)));renderUberObservation();addLog('Mapa Uber registrado em '+$('city').value+': demanda '+level+'.');load();}
  catch(_){$('uberState').textContent='Não foi possível salvar neste aparelho.';}
 }
 
@@ -155,7 +165,7 @@ function scoreFor(weather,uberObservation,city){
  if(uberObservation){if(uberObservation.level==='alta')score+=20;else if(uberObservation.level==='moderada')score+=8;else if(uberObservation.level==='baixa')score-=12;}
  return Math.max(0,Math.min(100,score));
 }
-function level(s){return s>=65?'ALTA':s>=42?'MODERADA':'BAIXA'}
+function level(s){return s>=65?'ALTA':s>=42?'MODERADA':'BAIXA'}\nfunction historicalAdjustment(city){const history=readObservationHistory().filter(x=>x.city===city&&Date.now()-x.time<30*86400000);if(!history.length)return 0;const weights={alta:1,moderada:0,baixa:-1};const avg=history.reduce((n,x)=>n+weights[x.level],0)/history.length;return Math.round(avg*8);}\nasync function getCityWeather(city){const p=places[city];const url=\`https://api.open-meteo.com/v1/forecast?latitude=\${p.lat}&longitude=\${p.lon}&current=temperature_2m,precipitation,wind_speed_10m&hourly=precipitation_probability,precipitation&forecast_days=1&timezone=America%2FSao_Paulo\`;const r=await fetch(url);if(!r.ok)throw new Error('Clima indisponível em '+city);const d=await r.json();const now=new Date();let idx=d.hourly.time.findIndex(t=>new Date(t)>=new Date(now.getFullYear(),now.getMonth(),now.getDate(),now.getHours()));if(idx<0)idx=0;return {temp:d.current.temperature_2m,nextRain:Math.max(...d.hourly.precipitation.slice(idx,idx+2)),prob:Math.max(...d.hourly.precipitation_probability.slice(idx,idx+2)),wind:d.current.wind_speed_10m};}\nasync function updateRegionalRanking(){if(regionalBusy)return;regionalBusy=true;$('regionalRanking').innerHTML='<div class=\"city\"><span>Atualizando as quatro cidades…</span><span class=\"pill\">Ao vivo</span></div>';try{const results=await Promise.all(CITY_NAMES.map(async city=>{try{const w=await getCityWeather(city);const observation=getUberObservation(city);const base=scoreFor(w,observation,city);const hist=historicalAdjustment(city);return {city,score:Math.max(0,Math.min(100,base+hist)),weather:w,ok:true,observation,hist};}catch(e){return {city,ok:false,error:e.message};}}));const valid=results.filter(x=>x.ok).sort((a,b)=>b.score-a.score);$('regionalRanking').innerHTML=valid.map((x,i)=>{const cls=level(x.score)==='ALTA'?'green':level(x.score)==='MODERADA'?'yellow':'red';return '<div class=\"city\" style=\"display:block\"><div class=\"row between\"><strong>'+(i===0?'★ ':'')+x.city+'</strong><strong class=\"'+cls+'\">'+x.score+'/100</strong></div><div class=\"bar\"><span style=\"width:'+x.score+'%;background:'+(x.score>=65?'#32d583':x.score>=42?'#fdb022':'#f97066')+'\"></span></div><div class=\"note\">'+level(x.score)+' • '+x.weather.temp+' °C • chuva '+x.weather.nextRain.toFixed(1)+' mm • histórico '+(x.hist>0?'+':'')+x.hist+'</div></div>';}).join('')||'<div class=\"city\">Nenhuma cidade atualizada.</div>';$('regionalUpdated').textContent='Atualizado '+new Date().toLocaleTimeString('pt-BR');$('climateSignal').textContent=valid.length+'/4 cidades atualizadas';const histCount=readObservationHistory().filter(x=>Date.now()-x.time<30*86400000).length;$('historySignal').textContent=histCount+' registros / 30 dias';$('observationSignal').textContent=histCount?'Aprendendo com registros':'Aguardando registros';$('regionalNote').textContent='Comparação baseada em clima consultado agora, padrões de horário relatados e histórico de observações salvas neste aparelho. Trânsito e eventos ainda não pontuam automaticamente; não há dados reais de pedidos Uber/99.';}finally{regionalBusy=false;}}
 function colorClass(l){return l==='ALTA'?'green':l==='MODERADA'?'yellow':'red'}
 function addLog(msg){const el=$('log');const line=document.createElement('div');line.textContent=new Date().toLocaleTimeString('pt-BR')+' — '+msg;if(el.textContent==='Nenhuma atualização ainda.')el.textContent='';el.prepend(line)}
 async function load(){
@@ -169,7 +179,7 @@ async function load(){
   const prob=Math.max(...d.hourly.precipitation_probability.slice(idx,idx+2));
   const w={nextRain:rain,prob,wind:d.current.wind_speed_10m,temp:d.current.temperature_2m};
   const uberObservation=getUberObservation(city);
-  const s=scoreFor(w,uberObservation,city),l=level(s);
+  const hist=historicalAdjustment(city);const s=Math.max(0,Math.min(100,scoreFor(w,uberObservation,city)+hist)),l=level(s);
   $('score').textContent=s+'/100';$('score').className='score '+colorClass(l);
   $('status').textContent='Oportunidade estimada: '+l;$('status').className='status '+colorClass(l);
   $('bar').style.width=s+'%';$('rain').textContent=rain.toFixed(1)+' mm';$('temp').textContent=d.current.temperature_2m+' °C';$('prob').textContent=prob+'%';$('wind').textContent=w.wind+' km/h';
@@ -178,7 +188,7 @@ async function load(){
   renderUberObservation();
   $('signals').querySelector('.city span').textContent='Clima';$('signals').querySelector('.city .pill').textContent='Atualizado';
   map.setView([p.lat,p.lon],11);if(marker)marker.remove();marker=L.circleMarker([p.lat,p.lon],{radius:13,color:l==='ALTA'?'#32d583':l==='MODERADA'?'#fdb022':'#f97066',fillOpacity:.35,weight:4}).addTo(map).bindPopup(city+': '+l+' (estimativa experimental)');
-  addLog(city+': indicador '+l+' ('+s+'/100), chuva próxima hora '+rain.toFixed(1)+' mm.');
+  addLog(city+': indicador '+l+' ('+s+'/100), chuva próxima hora '+rain.toFixed(1)+' mm.');\n  updateRegionalRanking();
   if(notificationGranted&&l==='ALTA'&&lastAlertLevel!=='ALTA'){new Notification('Radar Motorista – oportunidade estimada',{body:'Sinais favoráveis em '+city+'. Confira as condições antes de sair.'});}
   lastAlertLevel=l;
  }catch(e){$('status').textContent='Não foi possível atualizar';$('explain').textContent=e.message+' — verifique sua conexão.';addLog('Falha: '+e.message)}
@@ -191,6 +201,6 @@ $('clearUber').addEventListener('click',()=>{const all=readUberObservations();de
 $('notify').addEventListener('click',async()=>{if(!('Notification'in window)){ $('notifyState').textContent='Não suportado neste navegador';return;}const p=await Notification.requestPermission();notificationGranted=p==='granted';$('notifyState').textContent=notificationGranted?'Permissão concedida':'Permissão não concedida';});
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-initMap();renderUberObservation();load();setInterval(load,10*60*1000);
+initMap();renderUberObservation();load();updateRegionalRanking();setInterval(load,10*60*1000);setInterval(updateRegionalRanking,10*60*1000);
 </script>
 </body></html>
