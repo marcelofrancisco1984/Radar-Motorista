@@ -56,3 +56,12 @@ Complemento do padrão local de Vinhedo em dias úteis: das 19:00 até 00:00 a d
 - Esses ajustes são heurísticas iniciais baseadas no relato de um motorista, não estatísticas da Uber/99 nem previsão validada. Devem ser calibrados com observações registradas ao longo do tempo.
 
 - Domingos: segundo o relato do motorista, o movimento costuma ser melhor à tarde (12h às 18h) quando faz calor; com frio e chuva, costuma ser fraco. O indicador usa limites experimentais iniciais (calor a partir de 25 °C; frio até 18 °C combinado com chuva/probabilidade alta), que deverão ser ajustados com observações reais.
+
+
+## Atualização — painel regional dos cinco sinais
+- O painel compara automaticamente Vinhedo, Valinhos, Louveira e Campinas com consultas meteorológicas Open-Meteo, atualizadas a cada 10 minutos enquanto o app está aberto.
+- A pontuação regional combina clima atual/previsão, padrões horários iniciais e observações locais registradas pelo motorista.
+- As observações manuais são mantidas no aparelho e formam um histórico local de até 500 registros; a influência histórica considera os últimos 30 dias.
+- A agenda de Vinhedo e Valinhos está disponível por links oficiais para consulta. Eventos ainda não são extraídos automaticamente nem pontuam.
+- O trânsito continua com link para o Google Maps. Para dados automáticos de fluxo/incidentes, a documentação da TomTom confirma cobertura no Brasil e exige chave de API; a chave não deve ser exposta no HTML público. É necessário backend seguro para essa integração.
+- A comparação entre cidades não é uma medição de pedidos Uber/99. Cidades sem observações próprias usam apenas padrões horários genéricos, e os dados de trânsito/eventos não são considerados na pontuação até existir integração automática verificável.
