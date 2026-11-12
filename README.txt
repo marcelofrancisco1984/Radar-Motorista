@@ -54,3 +54,5 @@ Complemento do padrão local de Vinhedo em dias úteis: das 19:00 até 00:00 a d
 - Dias úteis: observações do motorista indicam pico das 06:00 às 08:30, queda após 09:00, melhora das 11:30 às 14:00, período fraco das 14:00 às 15:40, recuperação a partir das 16:00 e demanda moderada das 19:00 à meia-noite.
 - Sábados: do dia 1 ao dia 15 costumam ser mais fortes; após o dia 15 costumam ficar mais fracos. Os horários variam, portanto o indicador não presume um pico fixo.
 - Esses ajustes são heurísticas iniciais baseadas no relato de um motorista, não estatísticas da Uber/99 nem previsão validada. Devem ser calibrados com observações registradas ao longo do tempo.
+
+- Domingos: segundo o relato do motorista, o movimento costuma ser bom com calor e fraco quando está frio e chuvoso. O indicador usa limites experimentais iniciais (calor a partir de 25 °C; frio até 18 °C combinado com chuva/probabilidade alta), que deverão ser ajustados com observações reais.
