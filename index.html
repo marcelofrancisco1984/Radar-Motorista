@@ -8,96 +8,34 @@
 <title>Radar Motorista</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--bg:#0d1522;--panel:#172334;--muted:#9fb0c5;--green:#32d583;--yellow:#fdb022;--red:#f97066;--line:#2a3a50}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f5f7fb;font:15px system-ui,-apple-system,Segoe UI,sans-serif}
-header{padding:18px 16px 12px;background:#101827;position:sticky;top:0;z-index:500;border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:11px}.logo{width:42px;height:42px;border-radius:13px;background:#16834b;display:grid;place-items:center;font-size:23px}
-h1{font-size:19px;margin:0}.sub{font-size:12px;color:var(--muted);margin-top:2px}
-main{padding:14px;max-width:760px;margin:auto}.row{display:flex;gap:9px;align-items:center}.between{justify-content:space-between}
-select,button{border:1px solid var(--line);border-radius:11px;background:#1b2a3d;color:#fff;padding:11px 12px;font:inherit}
-select{width:100%;margin:5px 0 12px}button{cursor:pointer}button.primary{background:#16834b;border-color:#16834b;font-weight:700}
-button:disabled{opacity:.55}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
-.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-.score{font-size:38px;font-weight:800;line-height:1.15;margin:5px 0}.status{font-weight:700}.green{color:var(--green)}.yellow{color:var(--yellow)}.red{color:var(--red)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:#101b2a;border-radius:12px;padding:11px}.metric b{display:block;font-size:18px;margin-top:4px}
-#map{height:310px;border-radius:14px;overflow:hidden;border:1px solid var(--line);margin-bottom:12px}
-.note{font-size:12px;color:var(--muted);line-height:1.5}.list{display:grid;gap:9px}.city{display:flex;justify-content:space-between;align-items:center;padding:10px;background:#101b2a;border-radius:11px}
-.pill{font-size:11px;border-radius:99px;padding:4px 8px;background:#26374b}.signal-link{font-size:12px;color:#8bd7ff;text-decoration:none;border:1px solid #36516b;border-radius:9px;padding:7px 9px}.signal-link:active{opacity:.7}.bar{height:8px;background:#26374b;border-radius:20px;overflow:hidden;margin-top:8px}.bar span{display:block;height:100%;background:var(--green)}
-footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 18px 28px}
-#log{max-height:120px;overflow:auto;font-size:12px;color:var(--muted)}
-@media(min-width:650px){.twocol{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}#map{height:420px}}
+:root{--bg:#050b1b;--panel:#0b1528;--muted:#a9b8ce;--green:#16e879;--yellow:#ffbd18;--red:#ff625e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -15%,#17284a 0,#080f20 42%,#030817 100%);color:#f7f9ff;font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+header{padding:24px 20px 16px;max-width:620px;margin:auto;background:transparent;border:0}.brand{display:flex;align-items:center;gap:14px}.logo{width:68px;height:54px;background:transparent;color:#ffc400;display:grid;place-items:center;font-size:46px;font-weight:900}
+h1{font-size:clamp(25px,7vw,37px);font-style:italic;line-height:.95;letter-spacing:-1.4px;margin:0;font-weight:950}h1 span{display:block;color:#ffc400}.sub{font-size:16px;color:#f1f5fb;margin-top:9px}
+main{padding:8px 16px 28px;max-width:620px;margin:auto}.card{background:linear-gradient(145deg,rgba(13,28,49,.96),rgba(5,13,29,.98));border:1px solid #172a43;border-radius:25px;padding:20px;margin:0 0 16px;box-shadow:0 12px 30px #0003}
+.score{font-size:48px;font-weight:900;line-height:1.05;margin:10px 0 4px}.status{font-size:clamp(27px,7vw,40px);font-weight:850;line-height:1.08;letter-spacing:-1px}.green{color:var(--green)}.yellow{color:var(--yellow)}.red{color:var(--red)}
+#score{display:none}.bar{height:13px;background:#202b43;border-radius:30px;overflow:hidden;margin-top:22px}.bar span{display:block;height:100%;background:linear-gradient(90deg,#08d86b,#20f18a);border-radius:30px;box-shadow:0 0 18px #14e77b88;transition:width .4s}
+.opportunity{border:2px solid #13df77;background:linear-gradient(145deg,#062b25,#071626 75%);box-shadow:0 0 24px #08e77936;padding:25px 22px 22px}.opportunity-top{display:flex;align-items:center;gap:17px}.trend-icon{width:76px;height:76px;flex:none;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#087a4b,#063b34);border:2px solid #0bbd69;color:#4bffb0;font-size:43px}#status{flex:1}.subtitle{font-size:15px;color:#f1f5fb;margin-top:8px}.scoreline{display:flex;align-items:center;gap:13px}.scoreline .bar{flex:1}.score-value{font-size:23px;font-weight:800;white-space:nowrap}
+.signal-card{padding:7px 20px}.signal{display:flex;align-items:center;gap:16px;min-height:67px;border-bottom:1px solid #23344e}.signal:last-child{border:0}.signal-icon{width:43px;text-align:center;font-size:28px}.signal-name{font-size:18px;flex:1}.signal-state{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#087b46;color:#fff;font-weight:900;box-shadow:0 0 12px #12db7655}
+.alert-card{border:2px solid #0cb85b;background:linear-gradient(110deg,#06372c,#06271f);display:flex;align-items:center;gap:16px;padding:20px}.bell{font-size:40px;color:#39f69a}.alert-title{font-size:20px;font-weight:800;margin-bottom:5px}.alert-text{font-size:16px;line-height:1.35;color:#f0fff7}#updated{display:block;text-align:center;color:#8294ad;font-size:12px;margin:3px 0 14px}
+footer{text-align:center;color:#64758d;font-size:10px;padding:5px 15px 24px}#regionalCard,#uberCard,#map,#log,#rain,#temp,#prob,#wind,#notify,#notifyState,#climateSignal,#trafficSignal,#eventsSignal,#historySignal,#observationSignal,#trafficLink,.legacy{display:none!important}
+@media(max-width:390px){header{padding:20px 16px 14px}.logo{width:52px;font-size:37px}.opportunity{padding:19px 16px}.trend-icon{width:60px;height:60px;font-size:34px}.signal-name{font-size:16px}.signal{min-height:61px}.alert-card{padding:16px}.alert-title{font-size:18px}.alert-text{font-size:14px}}
 </style>
 </head>
 <body>
-<header><div class="brand"><div class="logo">◉</div><div><h1>RADAR MOTORISTA</h1><div class="sub">Protótipo experimental • Região de Campinas</div></div></div></header>
+<header><div class="brand"><div class="logo">◢</div><div><h1>RADAR <span>MOTORISTA</span></h1><div class="sub">⌖ Vinhedo - SP</div></div></div></header>
 <main>
-  <div class="card">
-    <div class="eyebrow">Área de monitoramento</div>
-    <select id="city">
-      <option value="Vinhedo">Vinhedo – SP</option><option value="Valinhos">Valinhos – SP</option>
-      <option value="Louveira">Louveira – SP</option><option value="Campinas">Campinas – SP</option>
-    </select>
-    <div class="row between"><span class="note" id="updated">Aguardando primeira consulta…</span><button id="refresh" class="primary">Atualizar agora</button></div>
-  </div>
-  <div class="card" id="regionalCard">
-    <div class="row between"><div><div class="eyebrow">Radar regional • comparação automática</div><strong>Melhores sinais entre as quatro cidades</strong></div><span class="pill" id="regionalUpdated">Aguardando análise</span></div>
-    <div id="regionalRanking" class="list" style="margin-top:12px"><div class="city"><span>Consultando clima das cidades…</span><span class="pill">—</span></div></div>
-    <p class="note" id="regionalNote" style="margin:10px 0 0">A pontuação será calculada com dados meteorológicos disponíveis, padrões históricos iniciais e observações locais. Trânsito e eventos só entram na pontuação quando houver uma fonte automática verificável.</p>
-  </div>
-  <div class="twocol">
-    <section>
-      <div class="card">
-        <div class="eyebrow">Indicador experimental de oportunidade</div>
-        <div class="score" id="score">—</div>
-        <div class="status" id="status">Consultando condições…</div>
-        <div class="bar"><span id="bar" style="width:0%"></span></div>
-        <p class="note" id="explain">Este indicador combina condições meteorológicas e padrões horários genéricos. Não mede solicitações reais da Uber ou 99.</p>
-      </div>
-      <div class="card" id="uberCard">
-        <div class="eyebrow">Demanda observada no Uber Driver</div>
-        <p class="note">Consulte o mapa de calor no Uber Driver e marque aqui o nível que você está vendo. O registro fica salvo somente neste aparelho e vale por até 90 minutos no indicador.</p>
-        <div class="grid">
-          <button type="button" data-uber="baixa">Demanda baixa</button>
-          <button type="button" data-uber="moderada">Demanda moderada</button>
-          <button type="button" class="primary" data-uber="alta">Demanda alta</button>
-          <button type="button" id="clearUber">Limpar registro</button>
-        </div>
-        <p class="note" id="uberState" style="margin-bottom:0">Nenhuma observação registrada para esta cidade.</p>
-      </div>
-      <div class="grid">
-        <div class="metric"><span class="eyebrow">Chuva próxima hora</span><b id="rain">—</b></div>
-        <div class="metric"><span class="eyebrow">Temperatura</span><b id="temp">—</b></div>
-        <div class="metric"><span class="eyebrow">Prob. chuva</span><b id="prob">—</b></div>
-        <div class="metric"><span class="eyebrow">Vento</span><b id="wind">—</b></div>
-      </div>
-      <div class="card" style="margin-top:12px">
-        <div class="eyebrow">Alertas neste aparelho</div>
-        <p class="note">Permita notificações para receber avisos enquanto esta página estiver aberta. Alertas com o app totalmente fechado exigem servidor de push, que será a próxima etapa.</p>
-        <div class="row"><button id="notify">Ativar notificações</button><span class="note" id="notifyState">Não ativadas</span></div>
-      </div>
-    </section>
-    <section>
-      <div id="map"></div>
-      <div class="card">
-        <div class="eyebrow">Cinco sinais monitorados</div>
-        <div class="list" id="signals">
-          <div class="city"><span>1. Clima</span><span class="pill" id="climateSignal">Conectando</span></div>
-          <div class="city"><span>2. Trânsito</span><span class="pill" id="trafficSignal">Fonte automática pendente</span></div>
-          <div class="city"><span>3. Eventos</span><span class="pill" id="eventsSignal">Agendas oficiais</span></div>
-          <div class="city"><span>4. Histórico</span><span class="pill" id="historySignal">Padrões iniciais</span></div>
-          <div class="city"><span>5. Observações</span><span class="pill" id="observationSignal">Registros locais</span></div>
-          <div class="city"><span>Trânsito no mapa</span><a class="signal-link" id="trafficLink" href="https://www.google.com/maps/@-23.0303,-46.9833,13z/data=!5m1!1e1" target="_blank" rel="noopener">Abrir Google Maps</a></div>
-          <div class="city"><span>Agenda de Vinhedo</span><a class="signal-link" href="https://www.vinhedo.sp.gov.br/portal/agenda" target="_blank" rel="noopener">Ver eventos</a></div>
-          <div class="city"><span>Agenda de Valinhos</span><a class="signal-link" href="https://www.valinhos.sp.gov.br/portal/agenda" target="_blank" rel="noopener">Ver eventos</a></div>
-        </div>
-        <p class="note" style="margin-top:10px">Clima é consultado automaticamente nas quatro cidades. As agendas municipais e o trânsito abrem fontes externas; ainda não são coletados automaticamente nem pontuam. A integração de trânsito por API exige chave privada e servidor seguro.</p>
-      </div>
-    </section>
-  </div>
-  <div class="card"><div class="eyebrow">Histórico de atualizações</div><div id="log">Nenhuma atualização ainda.</div></div>
-  <p class="note">Dados meteorológicos: Open-Meteo (atribuição CC BY 4.0). Mapa: © OpenStreetMap contributors. O protótipo não recomenda dirigir até uma área sem avaliar segurança, custos e condições reais.</p>
-</main>
-<footer>RADAR MOTORISTA • MVP 0.1 • Não afiliado à Uber ou à 99</footer>
+<section class="card opportunity"><div class="opportunity-top"><div class="trend-icon">↗</div><div style="min-width:0"><div class="status" id="status">Analisando...</div><div class="subtitle">Probabilidade estimada de boa demanda</div></div></div><div class="scoreline"><div class="bar"><span id="bar" style="width:0%"></span></div><div class="score-value" id="scoreVisible">—/100</div></div><div id="score">—</div></section>
+<section class="card signal-card">
+<div class="signal"><div class="signal-icon">☀️</div><div class="signal-name">Clima favorável</div><div class="signal-state" id="climateState">✓</div></div>
+<div class="signal"><div class="signal-icon">🚘</div><div class="signal-name">Trânsito</div><div class="signal-state" id="trafficState">…</div></div>
+<div class="signal"><div class="signal-icon">▦</div><div class="signal-name">Eventos próximos</div><div class="signal-state" id="eventsState">…</div></div>
+<div class="signal"><div class="signal-icon">◷</div><div class="signal-name">Histórico positivo</div><div class="signal-state" id="historyState">✓</div></div>
+</section>
+<section class="card alert-card"><div class="bell">♟</div><div><div class="alert-title" id="alertTitle">Atenção, motorista!</div><div class="alert-text" id="alertText">Analisando as condições da região para identificar boas oportunidades.</div></div></section>
+<div id="updated">Atualizando análise...</div>
+<div class="legacy"><div id="regionalCard"><div id="regionalRanking"></div><span id="regionalUpdated"></span><span id="regionalNote"></span></div><div id="uberCard"><span id="uberState"></span><button data-uber="baixa"></button><button data-uber="moderada"></button><button data-uber="alta"></button><button id="clearUber"></button></div><div id="map"></div><div id="rain"></div><div id="temp"></div><div id="prob"></div><div id="wind"></div><div id="notify"></div><span id="notifyState"></span><div id="signals"><div class="city"><span></span><span class="pill" id="climateSignal"></span></div><span id="trafficSignal"></span><span id="eventsSignal"></span><span id="historySignal"></span><span id="observationSignal"></span><a id="trafficLink"></a></div><div id="log"></div></div>
+</main><footer>RADAR MOTORISTA • Análise experimental</footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const places = {
@@ -187,14 +125,14 @@ async function load(){
   const w={nextRain:rain,prob,wind:d.current.wind_speed_10m,temp:d.current.temperature_2m};
   const uberObservation=getUberObservation(city);
   const hist=historicalAdjustment(city);const s=Math.max(0,Math.min(100,scoreFor(w,uberObservation,city)+hist)),l=level(s);
-  $('score').textContent=s+'/100';$('score').className='score '+colorClass(l);
-  $('status').textContent='Oportunidade estimada: '+l;$('status').className='status '+colorClass(l);
+  $('score').textContent=s+'/100';$('scoreVisible').textContent=s+'/100';$('score').className='score '+colorClass(l);
+  $('status').textContent='Oportunidade '+(l==='ALTA'?'Alta':l==='MODERADA'?'Moderada':'Baixa');$('status').className='status '+colorClass(l);
   $('bar').style.width=s+'%';$('rain').textContent=rain.toFixed(1)+' mm';$('temp').textContent=d.current.temperature_2m+' °C';$('prob').textContent=prob+'%';$('wind').textContent=w.wind+' km/h';
-  $('updated').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');
+  $('updated').textContent='Última análise às '+new Date().toLocaleTimeString('pt-BR');$('alertTitle').textContent=l==='ALTA'?'Atenção, motorista!':l==='MODERADA'?'Fique atento!':'Movimento tranquilo';$('alertText').textContent=l==='ALTA'?'A região apresenta sinais favoráveis de demanda. Uma boa oportunidade para ficar disponível.':l==='MODERADA'?'Há alguns sinais positivos na região. Continue acompanhando as condições.':'Os sinais indicam movimento mais fraco neste momento. O Radar continuará monitorando.';
   $('explain').textContent=uberObservation?'Estimativa experimental combinando horário, clima e sua observação manual recente do mapa de calor da Uber. Não representa demanda total da plataforma nem garante corridas.':'Estimativa experimental baseada em horário e clima. Em Vinhedo, considera observações do motorista: nos dias úteis, pico das 06:00 às 08:30, queda após 09:00, melhora das 11:30 às 14:00, período fraco das 14:00 às 15:40, recuperação das 16:00 às 19:00 e demanda moderada das 19:00 à meia-noite. Aos sábados, considera o início do mês (dias 1 a 15) geralmente mais forte e o período após o dia 15 mais fraco, sem presumir horários de pico. Aos domingos, considera o calor favorável e frio com chuva desfavorável. São padrões iniciais relatados, não demanda medida nem previsão validada.';
   renderUberObservation();
   $('signals').querySelector('.city span').textContent='Clima';$('signals').querySelector('.city .pill').textContent='Atualizado';
-  map.setView([p.lat,p.lon],11);if(marker)marker.remove();marker=L.circleMarker([p.lat,p.lon],{radius:13,color:l==='ALTA'?'#32d583':l==='MODERADA'?'#fdb022':'#f97066',fillOpacity:.35,weight:4}).addTo(map).bindPopup(city+': '+l+' (estimativa experimental)');
+  if(map){map.setView([p.lat,p.lon],11);if(marker)marker.remove();marker=L.circleMarker([p.lat,p.lon],{radius:13,color:l==='ALTA'?'#32d583':l==='MODERADA'?'#fdb022':'#f97066',fillOpacity:.35,weight:4}).addTo(map).bindPopup(city+': '+l+' (estimativa experimental)');}
   addLog(city+': indicador '+l+' ('+s+'/100), chuva próxima hora '+rain.toFixed(1)+' mm.');
   updateRegionalRanking();
   if(notificationGranted&&l==='ALTA'&&lastAlertLevel!=='ALTA'){new Notification('Radar Motorista – oportunidade estimada',{body:'Sinais favoráveis em '+city+'. Confira as condições antes de sair.'});}
@@ -209,6 +147,6 @@ $('clearUber').addEventListener('click',()=>{const all=readUberObservations();de
 $('notify').addEventListener('click',async()=>{if(!('Notification'in window)){ $('notifyState').textContent='Não suportado neste navegador';return;}const p=await Notification.requestPermission();notificationGranted=p==='granted';$('notifyState').textContent=notificationGranted?'Permissão concedida':'Permissão não concedida';});
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-initMap();renderUberObservation();load();updateRegionalRanking();setInterval(load,10*60*1000);setInterval(updateRegionalRanking,10*60*1000);
+try{initMap()}catch(e){}renderUberObservation();load();updateRegionalRanking();setInterval(load,10*60*1000);setInterval(updateRegionalRanking,10*60*1000);
 </script>
 </body></html>
