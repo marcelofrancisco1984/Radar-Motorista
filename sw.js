@@ -1,4 +1,4 @@
-const CACHE='radar-motorista-v09';
+const CACHE='radar-motorista-v10';
 const FILES=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
