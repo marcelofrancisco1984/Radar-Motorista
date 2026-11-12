@@ -142,8 +142,14 @@ function scoreFor(weather,uberObservation,city){
  else if(day===5) score+=10;
  if(day===0) score+=7;
  const rain=weather.nextRain;
- if(rain>=0.5) score+=18; else if(rain>=0.1) score+=10;
- if(weather.prob>=60) score+=8;
+ const sundayColdRain=city==='Vinhedo'&&day===0&&weather.temp<=18&&(rain>=0.1||weather.prob>=60);
+ // Domingo em Vinhedo: calor favorece o movimento; frio com chuva reduz. Limites térmicos são parâmetros iniciais.
+ if(city==='Vinhedo'&&day===0){
+  if(weather.temp>=25&&rain<0.1&&weather.prob<60) score+=15;
+  else if(sundayColdRain) score-=25;
+ }
+ if(!sundayColdRain){if(rain>=0.5) score+=18; else if(rain>=0.1) score+=10;}
+ if(weather.prob>=60&&!sundayColdRain) score+=8;
  if(weather.wind>=35) score-=5;
  // Observação manual do mapa de calor da Uber, válida por até 90 minutos.
  if(uberObservation){if(uberObservation.level==='alta')score+=20;else if(uberObservation.level==='moderada')score+=8;else if(uberObservation.level==='baixa')score-=12;}
@@ -161,14 +167,14 @@ async function load(){
   if(idx<0)idx=0;
   const rain=Math.max(...d.hourly.precipitation.slice(idx,idx+2));
   const prob=Math.max(...d.hourly.precipitation_probability.slice(idx,idx+2));
-  const w={nextRain:rain,prob,wind:d.current.wind_speed_10m};
+  const w={nextRain:rain,prob,wind:d.current.wind_speed_10m,temp:d.current.temperature_2m};
   const uberObservation=getUberObservation(city);
   const s=scoreFor(w,uberObservation,city),l=level(s);
   $('score').textContent=s+'/100';$('score').className='score '+colorClass(l);
   $('status').textContent='Oportunidade estimada: '+l;$('status').className='status '+colorClass(l);
   $('bar').style.width=s+'%';$('rain').textContent=rain.toFixed(1)+' mm';$('temp').textContent=d.current.temperature_2m+' °C';$('prob').textContent=prob+'%';$('wind').textContent=w.wind+' km/h';
   $('updated').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');
-  $('explain').textContent=uberObservation?'Estimativa experimental combinando horário, clima e sua observação manual recente do mapa de calor da Uber. Não representa demanda total da plataforma nem garante corridas.':'Estimativa experimental baseada em horário e clima. Em Vinhedo, considera observações do motorista: nos dias úteis, pico das 06:00 às 08:30, queda após 09:00, melhora das 11:30 às 14:00, período fraco das 14:00 às 15:40, recuperação das 16:00 às 19:00 e demanda moderada das 19:00 à meia-noite. Aos sábados, considera o início do mês (dias 1 a 15) geralmente mais forte e o período após o dia 15 mais fraco, sem presumir horários de pico. São padrões iniciais relatados, não demanda medida nem previsão validada.';
+  $('explain').textContent=uberObservation?'Estimativa experimental combinando horário, clima e sua observação manual recente do mapa de calor da Uber. Não representa demanda total da plataforma nem garante corridas.':'Estimativa experimental baseada em horário e clima. Em Vinhedo, considera observações do motorista: nos dias úteis, pico das 06:00 às 08:30, queda após 09:00, melhora das 11:30 às 14:00, período fraco das 14:00 às 15:40, recuperação das 16:00 às 19:00 e demanda moderada das 19:00 à meia-noite. Aos sábados, considera o início do mês (dias 1 a 15) geralmente mais forte e o período após o dia 15 mais fraco, sem presumir horários de pico. Aos domingos, considera o calor favorável e frio com chuva desfavorável. São padrões iniciais relatados, não demanda medida nem previsão validada.';
   renderUberObservation();
   $('signals').querySelector('.city span').textContent='Clima';$('signals').querySelector('.city .pill').textContent='Atualizado';
   map.setView([p.lat,p.lon],11);if(marker)marker.remove();marker=L.circleMarker([p.lat,p.lon],{radius:13,color:l==='ALTA'?'#32d583':l==='MODERADA'?'#fdb022':'#f97066',fillOpacity:.35,weight:4}).addTo(map).bindPopup(city+': '+l+' (estimativa experimental)');
