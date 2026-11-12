@@ -4,12 +4,15 @@
 - Permite escolher Vinhedo, Valinhos, Louveira e Campinas.
 - Consulta condições meteorológicas atuais e previsão horária via Open-Meteo.
 - Calcula um **indicador experimental** usando horário, dia da semana e sinais de chuva.
+- Permite registrar manualmente o nível de demanda observado no mapa de calor do Uber Driver (baixa, moderada ou alta).
+- Salva a última observação por cidade neste aparelho; ela influencia o indicador por até 90 minutos.
 - Exibe mapa com OpenStreetMap.
 - Atualiza a cada 10 minutos enquanto a página está aberta.
 - Permite solicitar permissão de notificação no navegador.
 
 ## Limitações importantes
 - A pontuação não mede pedidos reais da Uber/99, não é uma previsão validada e não garante corridas ou ganhos.
+- O registro do mapa de calor é manual: o Radar não acessa nem extrai dados internos do aplicativo Uber. As observações ficam somente no armazenamento local deste aparelho e não são compartilhadas entre motoristas.
 - Inclui atalho para visualizar o trânsito ao vivo no Google Maps, centralizado na cidade selecionada.
 - Inclui acesso direto à agenda oficial de eventos da Prefeitura de Vinhedo.
 - Trânsito e eventos ainda não são incorporados automaticamente à pontuação nem disparam alertas; esses atalhos abrem as fontes externas.
