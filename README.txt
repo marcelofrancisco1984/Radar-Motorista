@@ -55,4 +55,4 @@ Complemento do padrão local de Vinhedo em dias úteis: das 19:00 até 00:00 a d
 - Sábados: do dia 1 ao dia 15 costumam ser mais fortes; após o dia 15 costumam ficar mais fracos. Os horários variam, portanto o indicador não presume um pico fixo.
 - Esses ajustes são heurísticas iniciais baseadas no relato de um motorista, não estatísticas da Uber/99 nem previsão validada. Devem ser calibrados com observações registradas ao longo do tempo.
 
-- Domingos: segundo o relato do motorista, o movimento costuma ser bom com calor e fraco quando está frio e chuvoso. O indicador usa limites experimentais iniciais (calor a partir de 25 °C; frio até 18 °C combinado com chuva/probabilidade alta), que deverão ser ajustados com observações reais.
+- Domingos: segundo o relato do motorista, o movimento costuma ser melhor à tarde (12h às 18h) quando faz calor; com frio e chuva, costuma ser fraco. O indicador usa limites experimentais iniciais (calor a partir de 25 °C; frio até 18 °C combinado com chuva/probabilidade alta), que deverão ser ajustados com observações reais.
