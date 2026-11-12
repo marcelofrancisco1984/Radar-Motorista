@@ -48,6 +48,17 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 18px 28px
         <div class="bar"><span id="bar" style="width:0%"></span></div>
         <p class="note" id="explain">Este indicador combina condições meteorológicas e padrões horários genéricos. Não mede solicitações reais da Uber ou 99.</p>
       </div>
+      <div class="card" id="uberCard">
+        <div class="eyebrow">Demanda observada no Uber Driver</div>
+        <p class="note">Consulte o mapa de calor no Uber Driver e marque aqui o nível que você está vendo. O registro fica salvo somente neste aparelho e vale por até 90 minutos no indicador.</p>
+        <div class="grid">
+          <button type="button" data-uber="baixa">Demanda baixa</button>
+          <button type="button" data-uber="moderada">Demanda moderada</button>
+          <button type="button" class="primary" data-uber="alta">Demanda alta</button>
+          <button type="button" id="clearUber">Limpar registro</button>
+        </div>
+        <p class="note" id="uberState" style="margin-bottom:0">Nenhuma observação registrada para esta cidade.</p>
+      </div>
       <div class="grid">
         <div class="metric"><span class="eyebrow">Chuva próxima hora</span><b id="rain">—</b></div>
         <div class="metric"><span class="eyebrow">Temperatura</span><b id="temp">—</b></div>
@@ -85,6 +96,19 @@ const places = {
 };
 const $=id=>document.getElementById(id);
 let map, marker, notificationGranted=false, lastAlertLevel="";
+const UBER_KEY='radarUberObservationsV1';
+function readUberObservations(){try{return JSON.parse(localStorage.getItem(UBER_KEY)||'{}')}catch(_){return {}}}
+function getUberObservation(city=$('city').value){const item=readUberObservations()[city];if(!item)return null;const age=Date.now()-item.time;return age>=0&&age<=90*60*1000?item:null}
+function renderUberObservation(){
+ const item=getUberObservation();
+ $('uberState').textContent=item?('Último registro: demanda '+item.level+' às '+new Date(item.time).toLocaleTimeString('pt-BR')+'. '+(item.level==='alta'?'Sinal positivo':item.level==='moderada'?'Sinal intermediário':'Sinal fraco')+' considerado no indicador.'):'Nenhuma observação recente para esta cidade. Registros com mais de 90 minutos não influenciam a pontuação.';
+}
+function saveUberObservation(level){
+ const all=readUberObservations();all[$('city').value]={level,time:Date.now()};
+ try{localStorage.setItem(UBER_KEY,JSON.stringify(all));renderUberObservation();addLog('Mapa Uber registrado em '+$('city').value+': demanda '+level+'.');load();}
+ catch(_){$('uberState').textContent='Não foi possível salvar neste aparelho.';}
+}
+
 function initMap(){
  map=L.map('map').setView([ -23.00,-46.98 ],10);
  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(map);
@@ -95,7 +119,7 @@ function updateSignalLinks(city){
  $('trafficLink').href=`https://www.google.com/maps/@${p.lat},${p.lon},13z/data=!5m1!1e1`;
  $('trafficLink').textContent='Ver trânsito ao vivo';
 }
-function scoreFor(weather){
+function scoreFor(weather,uberObservation){
  const h=new Date().getHours(), day=new Date().getDay();
  let score=25;
  // Faixas horárias genéricas são hipótese inicial, não dados observados de corridas.
@@ -107,6 +131,8 @@ function scoreFor(weather){
  if(rain>=0.5) score+=18; else if(rain>=0.1) score+=10;
  if(weather.prob>=60) score+=8;
  if(weather.wind>=35) score-=5;
+ // Observação manual do mapa de calor da Uber, válida por até 90 minutos.
+ if(uberObservation){if(uberObservation.level==='alta')score+=20;else if(uberObservation.level==='moderada')score+=8;else if(uberObservation.level==='baixa')score-=12;}
  return Math.max(0,Math.min(100,score));
 }
 function level(s){return s>=65?'ALTA':s>=42?'MODERADA':'BAIXA'}
@@ -122,12 +148,14 @@ async function load(){
   const rain=Math.max(...d.hourly.precipitation.slice(idx,idx+2));
   const prob=Math.max(...d.hourly.precipitation_probability.slice(idx,idx+2));
   const w={nextRain:rain,prob,wind:d.current.wind_speed_10m};
-  const s=scoreFor(w),l=level(s);
+  const uberObservation=getUberObservation(city);
+  const s=scoreFor(w,uberObservation),l=level(s);
   $('score').textContent=s+'/100';$('score').className='score '+colorClass(l);
   $('status').textContent='Oportunidade estimada: '+l;$('status').className='status '+colorClass(l);
   $('bar').style.width=s+'%';$('rain').textContent=rain.toFixed(1)+' mm';$('temp').textContent=d.current.temperature_2m+' °C';$('prob').textContent=prob+'%';$('wind').textContent=w.wind+' km/h';
   $('updated').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');
-  $('explain').textContent='Pontuação heurística experimental: horário, dia da semana e sinais de chuva. Não representa demanda medida nem faturamento esperado.';
+  $('explain').textContent=uberObservation?'Estimativa experimental combinando horário, clima e sua observação manual recente do mapa de calor da Uber. Não representa demanda total da plataforma nem garante corridas.':'Estimativa experimental baseada em horário e clima. Sem observação recente do mapa da Uber; não representa demanda medida nem faturamento esperado.';
+  renderUberObservation();
   $('signals').querySelector('.city span').textContent='Clima';$('signals').querySelector('.city .pill').textContent='Atualizado';
   map.setView([p.lat,p.lon],11);if(marker)marker.remove();marker=L.circleMarker([p.lat,p.lon],{radius:13,color:l==='ALTA'?'#32d583':l==='MODERADA'?'#fdb022':'#f97066',fillOpacity:.35,weight:4}).addTo(map).bindPopup(city+': '+l+' (estimativa experimental)');
   addLog(city+': indicador '+l+' ('+s+'/100), chuva próxima hora '+rain.toFixed(1)+' mm.');
@@ -136,10 +164,13 @@ async function load(){
  }catch(e){$('status').textContent='Não foi possível atualizar';$('explain').textContent=e.message+' — verifique sua conexão.';addLog('Falha: '+e.message)}
  finally{$('refresh').disabled=false}
 }
-$('refresh').addEventListener('click',load);$('city').addEventListener('change',load);
+$('refresh').addEventListener('click',load);$('city').addEventListener('change',()=>{renderUberObservation();load();});
+document.querySelectorAll('[data-uber]').forEach(button=>button.addEventListener('click',()=>saveUberObservation(button.dataset.uber)));
+$('clearUber').addEventListener('click',()=>{const all=readUberObservations();delete all[$('city').value];try{localStorage.setItem(UBER_KEY,JSON.stringify(all));renderUberObservation();addLog('Registro manual da Uber removido para '+$('city').value+'.');load();}catch(_){$('uberState').textContent='Não foi possível limpar o registro.';}});
+
 $('notify').addEventListener('click',async()=>{if(!('Notification'in window)){ $('notifyState').textContent='Não suportado neste navegador';return;}const p=await Notification.requestPermission();notificationGranted=p==='granted';$('notifyState').textContent=notificationGranted?'Permissão concedida':'Permissão não concedida';});
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-initMap();load();setInterval(load,10*60*1000);
+initMap();renderUberObservation();load();setInterval(load,10*60*1000);
 </script>
 </body></html>
