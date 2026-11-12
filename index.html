@@ -119,11 +119,15 @@ function updateSignalLinks(city){
  $('trafficLink').href=`https://www.google.com/maps/@${p.lat},${p.lon},13z/data=!5m1!1e1`;
  $('trafficLink').textContent='Ver trânsito ao vivo';
 }
-function scoreFor(weather,uberObservation){
- const h=new Date().getHours(), day=new Date().getDay();
+function scoreFor(weather,uberObservation,city){
+ const now=new Date(), h=now.getHours(), minute=now.getMinutes(), day=now.getDay();
+ const weekday=day>=1&&day<=5;
  let score=25;
- // Faixas horárias genéricas são hipótese inicial, não dados observados de corridas.
- if((h>=6&&h<=9)||(h>=17&&h<=20)) score+=18;
+ // Padrão local informado pelo motorista: maior movimento em Vinhedo de segunda a sexta, 06:00–08:30.
+ if(city==='Vinhedo'&&weekday&&(h>6&&h<8||(h===6)||(h===8&&minute<=30))) score+=25;
+ // Nas demais situações, mantemos apenas a hipótese genérica do período da noite.
+ else if(h>=17&&h<=20) score+=18;
+ if(city!=='Vinhedo'&&h>=6&&h<=9) score+=18;
  if(h>=11&&h<=13) score+=8;
  if(day===5||day===6) score+=10;
  if(day===0) score+=7;
@@ -149,12 +153,12 @@ async function load(){
   const prob=Math.max(...d.hourly.precipitation_probability.slice(idx,idx+2));
   const w={nextRain:rain,prob,wind:d.current.wind_speed_10m};
   const uberObservation=getUberObservation(city);
-  const s=scoreFor(w,uberObservation),l=level(s);
+  const s=scoreFor(w,uberObservation,city),l=level(s);
   $('score').textContent=s+'/100';$('score').className='score '+colorClass(l);
   $('status').textContent='Oportunidade estimada: '+l;$('status').className='status '+colorClass(l);
   $('bar').style.width=s+'%';$('rain').textContent=rain.toFixed(1)+' mm';$('temp').textContent=d.current.temperature_2m+' °C';$('prob').textContent=prob+'%';$('wind').textContent=w.wind+' km/h';
   $('updated').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');
-  $('explain').textContent=uberObservation?'Estimativa experimental combinando horário, clima e sua observação manual recente do mapa de calor da Uber. Não representa demanda total da plataforma nem garante corridas.':'Estimativa experimental baseada em horário e clima. Sem observação recente do mapa da Uber; não representa demanda medida nem faturamento esperado.';
+  $('explain').textContent=uberObservation?'Estimativa experimental combinando horário, clima e sua observação manual recente do mapa de calor da Uber. Não representa demanda total da plataforma nem garante corridas.':'Estimativa experimental baseada em horário e clima. Em Vinhedo, considera o padrão informado pelo motorista: maior movimento em dias úteis, das 06:00 às 08:30. Sem observação recente do mapa da Uber; não representa demanda medida nem faturamento esperado.';
   renderUberObservation();
   $('signals').querySelector('.city span').textContent='Clima';$('signals').querySelector('.city .pill').textContent='Atualizado';
   map.setView([p.lat,p.lon],11);if(marker)marker.remove();marker=L.circleMarker([p.lat,p.lon],{radius:13,color:l==='ALTA'?'#32d583':l==='MODERADA'?'#fdb022':'#f97066',fillOpacity:.35,weight:4}).addTo(map).bindPopup(city+': '+l+' (estimativa experimental)');
